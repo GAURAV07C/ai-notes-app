@@ -15,18 +15,15 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { toast } = useToast();
+  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Login successful",
-      description: "Redirecting to your notes...",
-    });
+    toast("Login successful!");
 
     // Simulate login delay
     setTimeout(() => {
