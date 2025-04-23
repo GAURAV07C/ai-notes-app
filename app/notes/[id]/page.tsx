@@ -1,20 +1,21 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
-import { useCreateNote, useGenerateSummary } from "@/lib/api"
+import { useNote, useUpdateNote, useGenerateSummary } from "@/lib/api"
 import { ArrowLeft, Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
-export default function NewNotePage() {
+export default function EditNotePage({ params }: { params: { id: string } }) {
   const router = useRouter()
-
-  const createNote = useCreateNote()
+  
+  const { data: note, isLoading } = useNote(params.id)
+  const updateNote = useUpdateNote()
   const generateSummary = useGenerateSummary()
 
   const [title, setTitle] = useState("")
@@ -22,9 +23,17 @@ export default function NewNotePage() {
   const [summary, setSummary] = useState("")
   const [isSummarizing, setIsSummarizing] = useState(false)
 
+  useEffect(() => {
+    if (note) {
+      setTitle(note.title)
+      setContent(note.content)
+      setSummary(note.summary)
+    }
+  }, [note])
+
   const handleSummarize = async () => {
     if (!content.trim()) {
-      toast("")
+      toast("Please add some content to summarize.")
       return
     }
 
@@ -46,30 +55,39 @@ export default function NewNotePage() {
 
   const handleSave = () => {
     if (!title.trim()) {
-      toast("")
+      toast("Title required")
       return
     }
 
     if (!content.trim()) {
-      toast("")
+      toast("Content required")
       return
     }
 
-    createNote.mutate(
+    updateNote.mutate(
       {
+        id: params.id,
         title,
         content,
-        summary: summary || "",
+        summary,
       },
       {
         onSuccess: () => {
-          toast("")
+          toast("Note updated successfully")
           router.push("/notes")
         },
         onError: () => {
-          toast("Failed to create note")
+          toast("Failed to update note")
         },
       },
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-[70vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
     )
   }
 
@@ -100,8 +118,8 @@ export default function NewNotePage() {
               </>
             )}
           </Button>
-          <Button size="sm" onClick={handleSave} disabled={createNote.isPending || !title.trim() || !content.trim()}>
-            {createNote.isPending ? (
+          <Button size="sm" onClick={handleSave} disabled={updateNote.isPending || !title.trim() || !content.trim()}>
+            {updateNote.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 Saving...

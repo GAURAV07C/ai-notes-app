@@ -1,7 +1,6 @@
 "use client";
 
-import type React from "react";
-
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -16,19 +15,31 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-
+import { createClient } from "@/utils/supabase/client"; 
 export default function LoginPage() {
   const router = useRouter();
-  
+  const supabase = createClient();
+  // state for form values
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast("Login successful!");
 
-    // Simulate login delay
-    setTimeout(() => {
-      router.push("/notes");
-    }, 1000);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Login successful!");
+      setTimeout(() => {
+        router.push("/notes");
+      }, 1000);
+    }
   };
 
   return (
@@ -49,6 +60,7 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="grid gap-4">
             <Button variant="outline" className="w-full">
+              {/* Google icon */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -69,6 +81,7 @@ export default function LoginPage() {
               </svg>
               Login with Google
             </Button>
+
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -79,6 +92,7 @@ export default function LoginPage() {
                 </span>
               </div>
             </div>
+
             <form onSubmit={handleSubmit}>
               <div className="grid gap-2">
                 <div className="grid gap-1">
@@ -87,9 +101,8 @@ export default function LoginPage() {
                     id="email"
                     placeholder="name@example.com"
                     type="email"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    autoCorrect="off"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
@@ -99,8 +112,8 @@ export default function LoginPage() {
                     id="password"
                     placeholder="••••••••"
                     type="password"
-                    autoCapitalize="none"
-                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
@@ -110,6 +123,7 @@ export default function LoginPage() {
               </div>
             </form>
           </CardContent>
+
           <CardFooter className="flex flex-col">
             <div className="text-sm text-center text-gray-500 mt-2">
               Don&apos;t have an account?{" "}

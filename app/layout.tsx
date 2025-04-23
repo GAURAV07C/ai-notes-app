@@ -3,7 +3,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-
+import { QueryClientProvider } from "@/components/query-client-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -26,8 +26,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main>{children}</main>
-          <Toaster />
+          <QueryClientProvider>
+            <main>{children}</main>
+            <Toaster />
+          </QueryClientProvider>
         </ThemeProvider>
       </body>
     </html>

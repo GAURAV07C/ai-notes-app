@@ -1,29 +1,16 @@
-"use client";
+"use client"
 
-import type React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-  LogOut,
-  Menu,
-  X,
-  FileText,
-  Plus,
-  Search,
-  Moon,
-  Sun,
-  Home,
-  ChevronDown,
-  Settings,
-  User,
-} from "lucide-react";
-import { useState, useEffect } from "react";
-
-import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Suspense } from "react";
+import type React from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { LogOut, Menu, X, FileText, Plus, Search, Moon, Sun, Home, ChevronDown, Settings, User } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useNotes } from "@/lib/api"
+import { cn } from "@/lib/utils"
+import { useTheme } from "next-themes"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Suspense } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,68 +18,49 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 
-export default function NotesLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-  const pathname = usePathname();
+export default function NotesLayout({ children }: { children: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
+  const pathname = usePathname()
 
-  // Example notes data
-  const notes = [
-    { id: "1", title: "First Note" },
-    { id: "2", title: "Second Note" },
-    { id: "3", title: "Third Note" },
-  ];
- 
-  const { theme, setTheme } = useTheme();
+  const { data: notes } = useNotes()
+  const { theme, setTheme } = useTheme()
 
   // Handle responsive sidebar
   useEffect(() => {
     const checkSize = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < 768)
       if (window.innerWidth < 768) {
-        setSidebarOpen(false);
+        setSidebarOpen(false)
       } else {
-        setSidebarOpen(true);
+        setSidebarOpen(true)
       }
-    };
+    }
 
-    checkSize();
-    window.addEventListener("resize", checkSize);
-    return () => window.removeEventListener("resize", checkSize);
-  }, []);
+    checkSize()
+    window.addEventListener("resize", checkSize)
+    return () => window.removeEventListener("resize", checkSize)
+  }, [])
 
   // Close sidebar on mobile when navigating
   useEffect(() => {
     if (isMobile) {
-      setSidebarOpen(false);
+      setSidebarOpen(false)
     }
-  }, [pathname, isMobile]);
+  }, [pathname, isMobile])
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
+    setTheme(theme === "dark" ? "light" : "dark")
+  }
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-gray-950">
       {/* Top navbar */}
       <header className="border-b flex h-14 items-center px-4 lg:px-6 bg-white dark:bg-gray-950 z-10">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="mr-2"
-        >
-          {sidebarOpen ? (
-            <X className="h-5 w-5" />
-          ) : (
-            <Menu className="h-5 w-5" />
-          )}
+        <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="mr-2">
+          {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
 
         <Link href="/notes" className="flex items-center gap-2 font-semibold">
@@ -106,20 +74,12 @@ export default function NotesLayout({
             onClick={toggleTheme}
             className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50"
           >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full h-8 w-8 bg-gray-100 dark:bg-gray-800"
-              >
+              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 bg-gray-100 dark:bg-gray-800">
                 <User className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -152,9 +112,7 @@ export default function NotesLayout({
           className={cn(
             "w-64 border-r bg-white dark:bg-gray-950 transition-all duration-300 ease-in-out",
             sidebarOpen ? "translate-x-0" : "-translate-x-full",
-            isMobile && sidebarOpen
-              ? "absolute z-10 h-[calc(100%-3.5rem)] mt-14"
-              : "relative"
+            isMobile && sidebarOpen ? "absolute z-10 h-[calc(100%-3.5rem)] mt-14" : "relative",
           )}
         >
           <div className="flex flex-col h-full">
@@ -183,8 +141,7 @@ export default function NotesLayout({
                   variant="ghost"
                   className={cn(
                     "w-full justify-start mb-1 text-gray-700 dark:text-gray-300",
-                    pathname === "/notes" &&
-                      "bg-gray-100 dark:bg-gray-800 font-medium"
+                    pathname === "/notes" && "bg-gray-100 dark:bg-gray-800 font-medium",
                   )}
                 >
                   <Home className="h-4 w-4 mr-2" />
@@ -195,9 +152,7 @@ export default function NotesLayout({
 
             <div className="px-3 py-2">
               <div className="flex items-center justify-between px-2 mb-2">
-                <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  RECENT NOTES
-                </h3>
+                <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400">RECENT NOTES</h3>
                 <ChevronDown className="h-4 w-4 text-gray-500" />
               </div>
               <ScrollArea className="h-[calc(100vh-220px)]">
@@ -208,8 +163,7 @@ export default function NotesLayout({
                         variant="ghost"
                         className={cn(
                           "w-full justify-start text-left font-normal text-gray-700 dark:text-gray-300 h-auto py-1.5",
-                          pathname === `/notes/${note.id}/view` &&
-                            "bg-gray-100 dark:bg-gray-800 font-medium"
+                          pathname === `/notes/${note.id}/view` && "bg-gray-100 dark:bg-gray-800 font-medium",
                         )}
                       >
                         <FileText className="h-4 w-4 mr-2 shrink-0 text-gray-500" />
@@ -227,14 +181,11 @@ export default function NotesLayout({
         <main className="flex-1 overflow-hidden bg-white dark:bg-gray-950">
           {/* Overlay for mobile when sidebar is open */}
           {isMobile && sidebarOpen && (
-            <div
-              className="fixed inset-0 z-0 bg-black/50"
-              onClick={() => setSidebarOpen(false)}
-            />
+            <div className="fixed inset-0 z-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
           )}
           <Suspense>{children}</Suspense>
         </main>
       </div>
     </div>
-  );
+  )
 }

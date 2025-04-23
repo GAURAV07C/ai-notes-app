@@ -17,6 +17,7 @@ export default function SignupPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     toast("Signup successful!")
+    
 
     // Simulate signup delay
     setTimeout(() => {
