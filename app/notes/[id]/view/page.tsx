@@ -38,14 +38,20 @@ export default function ViewNotePage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="flex-1 overflow-auto max-w-4xl mx-auto">
+    <div className="flex-1 overflow-auto max-w-4xl mx-auto py-10">
       <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-950 border-b">
         <Button variant="ghost" size="sm" onClick={() => router.push("/notes")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <div className="text-sm text-gray-500">Last edited on {formatDate(note.updatedAt)}</div>
-        <Button variant="outline" size="sm" onClick={() => router.push(`/notes/${params.id}`)}>
+        <div className="text-sm text-gray-500">
+          Last edited on {formatDate(note.updatedAt)}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.push(`/notes/${params.id}`)}
+        >
           <Edit className="h-4 w-4 mr-1" />
           Edit
         </Button>
@@ -56,7 +62,9 @@ export default function ViewNotePage({ params }: { params: { id: string } }) {
 
         {note.summary && (
           <div className="mb-8 p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">AI SUMMARY</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-2">
+              AI SUMMARY
+            </h3>
             <p className="text-sm">{note.summary}</p>
           </div>
         )}
@@ -69,10 +77,10 @@ export default function ViewNotePage({ params }: { params: { id: string } }) {
               </p>
             ) : (
               <br key={i} />
-            ),
+            )
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }

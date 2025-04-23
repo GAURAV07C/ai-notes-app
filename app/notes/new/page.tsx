@@ -74,7 +74,7 @@ export default function NewNotePage() {
   }
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto py-10">
       <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-950 border-b">
         <Button variant="ghost" size="sm" onClick={() => router.push("/notes")}>
           <ArrowLeft className="h-4 w-4 mr-2" />

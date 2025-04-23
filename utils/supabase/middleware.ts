@@ -22,23 +22,29 @@ export const updateSession = async (request: NextRequest) => {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value),
+              request.cookies.set(name, value)
             );
             response = NextResponse.next({
               request,
             });
             cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options),
+              response.cookies.set(name, value, options)
             );
           },
         },
-      },
+      }
     );
 
     // This will refresh session if expired - required for Server Components
     // https://supabase.com/docs/guides/auth/server-side/nextjs
     const user = await supabase.auth.getUser();
-
+    // Agar login hai to login, signup, ya / pe na jaane de
+    if (
+      !user.error &&
+      ["/login", "/signup", "/"].includes(request.nextUrl.pathname)
+    ) {
+      return NextResponse.redirect(new URL("/notes", request.url));
+    }
     // protected routes
     if (request.nextUrl.pathname.startsWith("/notes") && user.error) {
       return NextResponse.redirect(new URL("/login", request.url));
@@ -49,7 +55,7 @@ export const updateSession = async (request: NextRequest) => {
     }
 
     return response;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     // If you are here, a Supabase client could not be created!
     // This is likely because you have not set up environment variables.
