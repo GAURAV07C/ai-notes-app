@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { createClient } from "@/utils/supabase/client"; 
+import { createClient } from "@/utils/supabase/client";
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -26,8 +26,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -36,9 +35,8 @@ export default function LoginPage() {
       toast.error(error.message);
     } else {
       toast.success("Login successful!");
-      setTimeout(() => {
-        router.push("/notes");
-      }, 1000);
+
+      router.push("/notes");
     }
   };
 
