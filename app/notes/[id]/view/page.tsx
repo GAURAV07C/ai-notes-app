@@ -31,15 +31,23 @@ export default function ViewNotePage() {
     );
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "Invalid date"; // Handle missing or invalid date
+
     const date = new Date(dateString);
+
+    // Check if it's a valid date
+    if (isNaN(date.getTime())) {
+      return "Invalid date"; // If invalid date
+    }
+
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     }).format(date);
   };
-
+console.log(note);
   return (
     <div className="flex-1 overflow-auto max-w-4xl mx-auto py-10">
       <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-950 border-b">
@@ -48,7 +56,7 @@ export default function ViewNotePage() {
           Back
         </Button>
         <div className="text-sm text-gray-500">
-          Last edited on {formatDate(note.updatedAt)}
+          Last edited on {formatDate(note.updatedAt) || "Unknown date"}
         </div>
         <Button
           variant="outline"
@@ -73,15 +81,15 @@ export default function ViewNotePage() {
         )}
 
         <div className="prose dark:prose-invert max-w-none">
-          {note.content.split("\n").map((paragraph, i) =>
+            {note.content.split("\n").map((paragraph: string, i: number) =>
             paragraph.trim() ? (
               <p key={i} className="mb-4">
-                {paragraph}
+              {paragraph}
               </p>
             ) : (
               <br key={i} />
             )
-          )}
+            )}
         </div>
       </div>
     </div>

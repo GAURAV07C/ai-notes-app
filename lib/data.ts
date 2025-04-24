@@ -1,11 +1,12 @@
-export interface Note {
-  id: string
-  title: string
-  content: string
-  summary: string
-  createdAt: string
-  updatedAt: string
-}
+export type Note = {
+  id: string;
+  user_id: string;
+  title: string;
+  content: string;
+  summary: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 // Dummy data for notes
 export const dummyNotes: Note[] = [
@@ -18,6 +19,7 @@ export const dummyNotes: Note[] = [
       "Q3/Q4 roadmap discussion focusing on feature rollout, resources, and marketing. Priorities: AI recommendations and dashboard redesign. Additional QA for payment gateway integration.",
     createdAt: "2023-09-15T10:30:00Z",
     updatedAt: "2023-09-15T10:30:00Z",
+    user_id: "user_123",
   },
   {
     id: "2",
@@ -28,6 +30,7 @@ export const dummyNotes: Note[] = [
       "AI implementation options: OpenAI GPT (quick, less custom), TensorFlow custom models (resource-heavy, more control), or hybrid approach (balanced but complex).",
     createdAt: "2023-09-10T14:45:00Z",
     updatedAt: "2023-09-12T09:15:00Z",
+    user_id: "user_123",
   },
   {
     id: "3",
@@ -38,6 +41,7 @@ export const dummyNotes: Note[] = [
       "Project timeline adjusted: beta release delayed by 2 weeks, final release date maintained by compressing QA period. Additional QA resources required.",
     createdAt: "2023-09-05T11:20:00Z",
     updatedAt: "2023-09-07T16:30:00Z",
+    user_id: "user_123",
   },
   {
     id: "4",
@@ -48,6 +52,7 @@ export const dummyNotes: Note[] = [
       "Customer feedback highlights: Positive - intuitive interface, fast response. Negative - limited exports, sync issues. Recommendations: improve exports, fix sync, add dark mode.",
     createdAt: "2023-08-28T09:00:00Z",
     updatedAt: "2023-08-30T13:45:00Z",
+    user_id: "user_123",
   },
   {
     id: "5",
@@ -58,5 +63,6 @@ export const dummyNotes: Note[] = [
       "Q1 feature ideas: collaborative editing (priority, addresses enterprise needs), data visualization tools, and project management integrations. Collaborative editing requires backend changes but feasible for Q1.",
     createdAt: "2023-08-20T15:10:00Z",
     updatedAt: "2023-08-22T10:25:00Z",
+    user_id: "user_123",
   },
-]
+];

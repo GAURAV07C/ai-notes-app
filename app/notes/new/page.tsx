@@ -22,6 +22,8 @@ export default function NewNotePage() {
   const [summary, setSummary] = useState("")
   const [isSummarizing, setIsSummarizing] = useState(false)
 
+  
+
   const handleSummarize = async () => {
     if (!content.trim()) {
       toast("")
@@ -44,36 +46,37 @@ export default function NewNotePage() {
     })
   }
 
-  const handleSave = () => {
-    if (!title.trim()) {
-      toast("")
-      return
-    }
+const handleSave = () => {
+  if (!title.trim()) {
+    toast("Please enter a title.");
+    return;
+  }
 
-    if (!content.trim()) {
-      toast("")
-      return
-    }
+  if (!content.trim()) {
+    toast("Please enter some content.");
+    return;
+  }
 
-    createNote.mutate(
-      {
+  createNote.mutate(
+    {
       title,
       content,
       summary: summary || "",
-     
-      },
-      {
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
       onSuccess: () => {
-        toast("Note created successfully");
-        router.push("/notes");
+        toast("Note created successfully!");
+        router.push("/notes"); // Redirect to the notes page
       },
-      onError: () => {
-        toast("Failed to create note");
+      onError: (error) => {
+        console.error("Error creating note:", error); // Log the error
+        toast("Failed to create note. Please try again.");
       },
-      }
-    );
-  }
-
+    }
+  );
+};
   return (
     <div className="flex-1 overflow-auto py-10">
       <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-950 border-b">

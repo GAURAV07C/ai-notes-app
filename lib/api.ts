@@ -1,19 +1,43 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { type Note, dummyNotes } from "./data";
+import { createClient } from "@/utils/supabase/client";
+
+const supabase = createClient();
+
+import { type Note } from "./data";
 
 // Simulate API delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Get all notes
+export const getNotes = async () => {
+  // Get the authenticated user
+  const { data: user, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error("User not authenticated");
+  }
+
+  // Fetch notes for the authenticated user
+  const { data, error } = await supabase
+    .from("notes")
+    .select("*")
+    .eq("user_id", user.user.id) // Use user ID from authentication
+    .order("created_at", { ascending: false }); // Use created_at instead of createdAt
+
+  if (error) {
+    console.error("Error fetching notes:", error.message);
+    throw error;
+  }
+
+  return data;
+};
+
+// Get all notes for the authenticated user
 export function useNotes() {
   return useQuery({
     queryKey: ["notes"],
-    queryFn: async () => {
-      await delay(800); // Simulate network delay
-      return [...dummyNotes];
-    },
+    queryFn: getNotes, // No need to pass userId now
   });
 }
 
@@ -23,35 +47,95 @@ export function useNote(id: string) {
     queryKey: ["notes", id],
     queryFn: async () => {
       await delay(500); // Simulate network delay
-      const note = dummyNotes.find((note) => note.id === id);
-      if (!note) throw new Error("Note not found");
-      return note;
+
+      // Get the authenticated user
+      const { data: user, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        throw new Error("User not authenticated");
+      }
+
+      const userId = user?.user.id; // Extract user ID from the user object
+
+      if (!userId) {
+        throw new Error("User ID is missing");
+      }
+
+      // Fetch the note for the authenticated user
+      const { data, error } = await supabase
+        .from("notes")
+        .select("*")
+        .eq("id", id)
+        .eq("user_id", userId)
+        .single(); // Fetch a single note
+
+      if (error || !data) {
+        throw new Error(`Note with ID ${id} not found`);
+      }
+
+      // Ensure that date fields are valid
+      const validCreatedAt = new Date(data.created_at);
+      const validUpdatedAt = new Date(data.updated_at);
+
+      if (isNaN(validCreatedAt.getTime()) || isNaN(validUpdatedAt.getTime())) {
+        throw new Error("Invalid date format");
+      }
+
+      // Add validated dates to the note data
+      data.created_at = validCreatedAt;
+      data.updated_at = validUpdatedAt;
+
+      return data; // Return the fetched note data
     },
+    retry: 2, // Retry 2 times before failing
   });
 }
-
 // Create a new note
+
 export function useCreateNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (
-      newNote: Omit<Note, "user_id" |"id" | "createdAt" | "updatedAt">
+      newNote: Omit<Note, "user_id" | "id" | "created_at" | "updated_at">
     ) => {
-      await delay(1000); // Simulate network delay
+      // Get the authenticated user
+      const { data, error } = await supabase.auth.getUser();
 
-      const note: Note = {
-        id: Date.now().toString(),
-        ...newNote,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      if (error || !data?.user) {
+        throw new Error("User not authenticated");
+      }
 
-      return note;
+      // Ensure that user is valid
+      const userId = data.user.id;
+      if (!userId) {
+        throw new Error("User ID not found");
+      }
+
+      // Insert the new note with the user ID
+      const { data: insertData, error: insertError } = await supabase
+        .from("notes")
+        .insert([
+          {
+            title: newNote.title,
+            content: newNote.content,
+            summary: newNote.summary,
+            user_id: userId, // Ensure user ID is valid
+            created_at: newNote.createdAt,
+            updated_at: newNote.updatedAt,
+          },
+        ])
+        .single(); // Insert and get the response for a single note
+
+      if (insertError) {
+        throw new Error(insertError.message); // Handle any errors from Supabase
+      }
+
+      return insertData; // Return the created note
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["notes"], (oldData: Note[] = []) => {
-        return [data, ...oldData];
+        return [data, ...oldData]; // Update the cache with the new note
       });
     },
   });
@@ -63,58 +147,56 @@ export function useUpdateNote() {
 
   return useMutation({
     mutationFn: async (updatedNote: Partial<Note> & { id: string }) => {
-      await delay(1000); // Simulate network delay
+      const { error, data } = await supabase
+        .from("notes")
+        .update({
+          title: updatedNote.title,
+          content: updatedNote.content,
+          summary: updatedNote.summary,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", updatedNote.id)
+        .select()
+        .single();
 
-      const existingNotes = queryClient.getQueryData<Note[]>(["notes"]) || [];
-      const noteIndex = existingNotes.findIndex(
-        (note) => note.id === updatedNote.id
-      );
+      if (error) {
+        throw new Error(error.message);
+      }
 
-      if (noteIndex === -1) throw new Error("Note not found");
-
-      const updatedNoteData: Note = {
-        ...existingNotes[noteIndex],
-        ...updatedNote,
-        updatedAt: new Date().toISOString(),
-      };
-
-      return updatedNoteData;
+      return data;
     },
+
     onSuccess: (data) => {
-      queryClient.setQueryData(["notes"], (oldData: Note[] = []) => {
-        return oldData.map((note) => (note.id === data.id ? data : note));
-      });
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
       queryClient.setQueryData(["notes", data.id], data);
     },
   });
 }
-
 // Delete a note
 export function useDeleteNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await delay(800); // Simulate network delay
+      const { data: user, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error("User not authenticated");
+      }
 
-      // Get current notes
-      const currentNotes = queryClient.getQueryData<Note[]>(["notes"]) || [];
+      const { error } = await supabase
+        .from("notes")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.user.id);
 
-      // Check if note exists
-      const noteExists = currentNotes.some((note) => note.id === id);
-      if (!noteExists) {
-        throw new Error("Note not found");
+      if (error) {
+        throw new Error(error.message);
       }
 
       return id;
     },
     onSuccess: (id) => {
-      // Update notes cache by filtering out the deleted note
-      queryClient.setQueryData(["notes"], (oldData: Note[] = []) => {
-        return oldData.filter((note) => note.id !== id);
-      });
-
-      // Remove the specific note query
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
       queryClient.removeQueries({ queryKey: ["notes", id] });
     },
   });
