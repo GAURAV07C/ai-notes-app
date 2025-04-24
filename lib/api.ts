@@ -2,13 +2,13 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/utils/supabase/client";
-import { GoogleGenAI } from "@google/genai";
+
 const supabase = createClient();
 
-import { type Note } from "./data";
+import { type Note} from "./data";
+import { generateSummary } from "./gen_ai"; 
 
 // Simulate API delay
-
 
 export const getNotes = async () => {
   // Get the authenticated user
@@ -46,8 +46,6 @@ export function useNote(id: string) {
   return useQuery({
     queryKey: ["notes", id],
     queryFn: async () => {
-     
-
       // Get the authenticated user
       const { data: user, error: authError } = await supabase.auth.getUser();
 
@@ -203,20 +201,8 @@ export function useDeleteNote() {
 }
 
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GoogleGenAI_API_Key,
-});
 
 // Ye function Gemini API ko call karega
-async function generateSummary(content: string) {
-  const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash",
-    contents: `Summarize this:\n\n${content}`,
-  });
-
-  return response.text;
-}
-
 // Generate AI summary (real implementation)
 export function useGenerateSummary() {
   return useMutation({
