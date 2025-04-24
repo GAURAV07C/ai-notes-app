@@ -1,24 +1,3 @@
----
-
-## ⚠️ Notes
-
-Due to my ongoing university exams, I wasn’t able to complete the full CRUD operations and AI summarization feature within the given time frame.  
-
-I managed to implement:
-
-- User authentication (Google login and Email/Password login) using Supabase.
-- A basic frontend structure for the notes feature using dummy JSON data to simulate notes.
-
-The CRUD functionality and AI integration setup are planned, and I intend to complete them once my exams are over.
-
-Thank you for your understanding!
-
-
-## 📌 Project Status
-
-**In Progress** — core authentication implemented, notes feature prototyped using dummy data.  
-Full CRUD operations and AI summarization integration pending due to ongoing exams.
-
 
 
 # 📝 NoteAI - AI Powered Notes App
