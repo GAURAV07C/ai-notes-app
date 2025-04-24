@@ -9,11 +9,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner";
+import { useState } from "react"
+import { createClient } from "@/utils/supabase/client"
+import { Icons } from "@/components/icons"
 
 export default function SignupPage() {
   const router = useRouter()
-
-
+  
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+const supabase = createClient();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     toast("Signup successful!")
@@ -24,6 +30,30 @@ export default function SignupPage() {
       router.push("/login")
     }, 1000)
   }
+
+   const handleGoogleSignIn = async () => {
+     setIsLoading(true);
+     setError(null);
+
+     try {
+       const { error } = await supabase.auth.signInWithOAuth({
+         provider: "google",
+         options: {
+           redirectTo: `${window.location.origin}/auth/callback`,
+         },
+       });
+
+       if (error) {
+         setError(error.message);
+       }
+       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     } catch (err) {
+       setError("An unexpected error occurred");
+     } finally {
+       setIsLoading(false);
+     }
+   };
+
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
@@ -37,27 +67,20 @@ export default function SignupPage() {
             <CardDescription className="text-center">Create an account to get started</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <Button variant="outline" className="w-full">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mr-2 h-4 w-4"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <circle cx="12" cy="12" r="4" />
-                <line x1="21.17" y1="8" x2="12" y2="8" />
-                <line x1="3.95" y1="6.06" x2="8.54" y2="14" />
-                <line x1="10.88" y1="21.94" x2="15.46" y2="14" />
-              </svg>
-              Sign up with Google
-            </Button>
+             <Button
+                          variant="outline"
+                          type="button"
+                          className="w-full"
+                          onClick={handleGoogleSignIn}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Icons.google className="mr-2 h-4 w-4" />
+                          )}{" "}
+                          Google
+                        </Button>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -68,17 +91,7 @@ export default function SignupPage() {
             </div>
             <form onSubmit={handleSubmit}>
               <div className="grid gap-2">
-                <div className="grid gap-1">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    placeholder="John Doe"
-                    type="text"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    required
-                  />
-                </div>
+              
                 <div className="grid gap-1">
                   <Label htmlFor="email">Email</Label>
                   <Input
