@@ -1,41 +1,44 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { useNote } from "@/lib/api"
-import { ArrowLeft, Edit, Loader2 } from "lucide-react"
+import { useRouter, useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { useNote } from "@/lib/api";
+import { ArrowLeft, Edit, Loader2 } from "lucide-react";
 
-export default function ViewNotePage({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const { data: note, isLoading } = useNote(params.id)
+export default function ViewNotePage() {
+  const router = useRouter();
+  const { id } = useParams<{ id: string }>(); // ✅ get id from useParams
+  const { data: note, isLoading } = useNote(id);
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-[70vh]">
         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
       </div>
-    )
+    );
   }
 
   if (!note) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh]">
         <h2 className="text-2xl font-bold mb-2">Note not found</h2>
-        <p className="text-gray-500 mb-4">The note you&apos;re looking for doesn&apos;t exist or has been deleted.</p>
+        <p className="text-gray-500 mb-4">
+          The note you&apos;re looking for doesn&apos;t exist or has been
+          deleted.
+        </p>
         <Button onClick={() => router.push("/notes")}>Back to Notes</Button>
       </div>
-    )
+    );
   }
 
-  // Format date for display
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
-    }).format(date)
-  }
+    }).format(date);
+  };
 
   return (
     <div className="flex-1 overflow-auto max-w-4xl mx-auto py-10">
@@ -50,7 +53,7 @@ export default function ViewNotePage({ params }: { params: { id: string } }) {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push(`/notes/${params.id}`)}
+          onClick={() => router.push(`/notes/${id}`)}
         >
           <Edit className="h-4 w-4 mr-1" />
           Edit
