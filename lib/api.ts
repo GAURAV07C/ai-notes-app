@@ -2,13 +2,13 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/utils/supabase/client";
-
+import { GoogleGenAI } from "@google/genai";
 const supabase = createClient();
 
 import { type Note } from "./data";
 
 // Simulate API delay
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 
 export const getNotes = async () => {
   // Get the authenticated user
@@ -46,7 +46,7 @@ export function useNote(id: string) {
   return useQuery({
     queryKey: ["notes", id],
     queryFn: async () => {
-      await delay(500); // Simulate network delay
+     
 
       // Get the authenticated user
       const { data: user, error: authError } = await supabase.auth.getUser();
@@ -202,37 +202,52 @@ export function useDeleteNote() {
   });
 }
 
-// Generate AI summary (dummy function)
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.GoogleGenAI_API_Key,
+});
+
+// Ye function Gemini API ko call karega
+async function generateSummary(content: string) {
+  const response = await ai.models.generateContent({
+    model: "gemini-2.0-flash",
+    contents: `Summarize this:\n\n${content}`,
+  });
+
+  return response.text;
+}
+
+// Generate AI summary (real implementation)
 export function useGenerateSummary() {
   return useMutation({
     mutationFn: async (content: string) => {
-      await delay(1500); // Simulate AI processing time
-
-      // Dummy summary generation - in a real app, this would call an AI service
       const words = content.split(" ");
-      let summary = "";
 
+      // Agar content me 10 words ya usse kam hain to wahi return
       if (words.length <= 10) {
-        summary = content;
+        return content;
       } else {
-        // Extract some sentences for the dummy summary
-        const sentences = content
-          .split(/[.!?]+/)
-          .filter((s) => s.trim().length > 0);
-        if (sentences.length > 0) {
-          // Take first sentence and maybe one from the middle if available
-          summary = sentences[0].trim();
-          if (sentences.length > 2) {
-            summary +=
-              ". " + sentences[Math.floor(sentences.length / 2)].trim() + ".";
-          }
-        } else {
-          // Fallback to first 15 words if no sentences
-          summary = words.slice(0, 15).join(" ") + "...";
-        }
-      }
+        const summary = await generateSummary(content); // await yahan
 
-      return summary;
+        // Safety: agar response empty aaye to fallback logic
+        if (!summary || summary.trim().length === 0) {
+          const sentences = content
+            .split(/[.!?]+/)
+            .filter((s) => s.trim().length > 0);
+          if (sentences.length > 0) {
+            let fallbackSummary = sentences[0].trim();
+            if (sentences.length > 2) {
+              fallbackSummary +=
+                ". " + sentences[Math.floor(sentences.length / 2)].trim() + ".";
+            }
+            return fallbackSummary;
+          } else {
+            return words.slice(0, 15).join(" ") + "...";
+          }
+        }
+
+        return summary;
+      }
     },
   });
 }
