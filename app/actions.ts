@@ -29,7 +29,7 @@ export const signUpAction = async (formData: FormData) => {
 
   if (error) {
     console.error(error.code + " " + error.message);
-    return encodedRedirect("error", "/sign-up", error.message);
+    return encodedRedirect("error", "/signup", error.message);
   } else {
     return encodedRedirect(
       "success",
@@ -39,6 +39,22 @@ export const signUpAction = async (formData: FormData) => {
   }
 };
 
+export const signInAction = async (formData: FormData) => {
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return encodedRedirect("error", "/login", error.message);
+  }
+
+  return redirect("/notes");
+};
 
 
 

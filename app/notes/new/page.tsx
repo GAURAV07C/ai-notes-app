@@ -57,20 +57,21 @@ export default function NewNotePage() {
 
     createNote.mutate(
       {
-        title,
-        content,
-        summary: summary || "",
+      title,
+      content,
+      summary: summary || "",
+     
       },
       {
-        onSuccess: () => {
-          toast("")
-          router.push("/notes")
-        },
-        onError: () => {
-          toast("Failed to create note")
-        },
+      onSuccess: () => {
+        toast("Note created successfully");
+        router.push("/notes");
       },
-    )
+      onError: () => {
+        toast("Failed to create note");
+      },
+      }
+    );
   }
 
   return (

@@ -36,7 +36,7 @@ export function useCreateNote() {
 
   return useMutation({
     mutationFn: async (
-      newNote: Omit<Note, "id" | "createdAt" | "updatedAt">
+      newNote: Omit<Note, "user_id" |"id" | "createdAt" | "updatedAt">
     ) => {
       await delay(1000); // Simulate network delay
 
