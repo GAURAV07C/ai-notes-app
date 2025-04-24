@@ -4,16 +4,7 @@ import type React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-
-  FileText,
-  Plus,
-  Search,
-  
-  Home,
-  ChevronDown,
-  
-} from "lucide-react";
+import { FileText, Plus, Search, Home, ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -21,21 +12,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavStore } from "@/store/NavStore";
 import { useNotes } from "@/lib/api";
 
-
-
 const Sidebar = () => {
   const { data: notes } = useNotes();
-   const { sidebarOpen, isMobile } =
-      useNavStore();
-       const pathname = usePathname();
+  const { sidebarOpen, isMobile } = useNavStore();
+  const pathname = usePathname();
+
   return (
     <aside
       className={cn(
         "w-64 border-r bg-white dark:bg-gray-950 transition-all duration-300 ease-in-out overflow-y-auto",
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
-        isMobile && sidebarOpen
-          ? "fixed top-14 z-30 h-[calc(100vh-3.5rem)]"
-          : "relative h-[calc(100vh-3.5rem)]"
+        isMobile
+          ? sidebarOpen
+            ? "fixed top-14 left-0 z-30 h-[calc(100vh-3.5rem)]" // Sidebar shown, overlay on content
+            : "hidden" // Sidebar hidden when closed
+          : "relative h-[calc(100vh-3.5rem)]" // Desktop view where the sidebar is pushed
       )}
     >
       <div className="flex flex-col h-full">
