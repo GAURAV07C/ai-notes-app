@@ -2,7 +2,7 @@
 
 A minimal, clean, and AI-powered notes application built with **Next.js (TypeScript)**, **Supabase**, **React Query**, **Shadcn UI**, and **DeepSeek AI Summarization API**.
 
-Deployed live 👉 [Vercel App URL Here](https://your-deployed-url.vercel.app)
+Deployed live 👉 [Vercel App URL Here](https://ai-notes-app-azure.vercel.app/)
 
 ---
 
