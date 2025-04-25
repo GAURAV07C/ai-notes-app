@@ -5,8 +5,8 @@ import { createClient } from "@/utils/supabase/client";
 
 const supabase = createClient();
 
-import { type Note} from "./data";
-import { generateSummary } from "./gen_ai"; 
+import { type Note } from "./data";
+// import { generateSummary } from "./gen_ai";
 
 // Simulate API delay
 
@@ -200,7 +200,20 @@ export function useDeleteNote() {
   });
 }
 
+export async function generateSummary(content: string) {
+  const res = await fetch("http://localhost:3000/api/gen-ai", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
 
+  const data = await res.json();
+  if (data.error) {
+    throw new Error(data.error); // Error handle karo
+  }
+
+  return data.summary; // Summary ko return karo
+}
 
 // Ye function Gemini API ko call karega
 // Generate AI summary (real implementation)
