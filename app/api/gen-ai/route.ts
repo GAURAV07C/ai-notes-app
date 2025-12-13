@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.GoogleGenAI_API_Key, // API Key ko safely store karne ke liye environment variable ka use karo
+  apiKey: process.env.GOOGLE_GENAI_API_KEY, // API Key ko safely store karne ke liye environment variable ka use karo
 });
 
 export async function POST(req: Request) {

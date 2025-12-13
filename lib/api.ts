@@ -37,7 +37,7 @@ export const getNotes = async () => {
 export function useNotes() {
   return useQuery({
     queryKey: ["notes"],
-    queryFn: getNotes, // No need to pass userId now
+    queryFn: getNotes, 
   });
 }
 
@@ -202,11 +202,14 @@ export function useDeleteNote() {
 }
 
 export async function generateSummary(content: string) {
-  const res = await fetch("http://localhost:3000/api/gen-ai", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content }),
-  });
+  const res = await fetch(
+    "https://ai-notes-app-azure.vercel.app/api/gen-ai",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
+    }
+  );
 
   const data = await res.json();
   if (data.error) {
