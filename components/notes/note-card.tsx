@@ -33,6 +33,8 @@ interface NoteCardProps {
 export function NoteCard({ note, onDelete, onEdit }: NoteCardProps) {
   const router = useRouter();
 
+  console.log("motes", note);
+
   // Format date safely for display
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Unknown date";
@@ -61,7 +63,7 @@ export function NoteCard({ note, onDelete, onEdit }: NoteCardProps) {
     >
       <CardHeader className="pb-2 border-b">
         <CardTitle className="line-clamp-1 text-lg">{note.title}</CardTitle>
-        <CardDescription>{formatDate(note.updatedAt)}</CardDescription>
+        <CardDescription>{formatDate(note.updated_at)}</CardDescription>
       </CardHeader>
 
       <CardContent className="flex-grow py-4">

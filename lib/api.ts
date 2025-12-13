@@ -123,6 +123,7 @@ export function useCreateNote() {
             updated_at: newNote.updatedAt,
           },
         ])
+        .select()
         .single(); // Insert and get the response for a single note
 
       if (insertError) {
