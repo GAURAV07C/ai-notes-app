@@ -15,58 +15,40 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { createClient } from "@/utils/supabase/client";
+import { signIn } from "next-auth/react";
 import { Icons } from "@/components/icons";
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClient();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const result = await signIn("credentials", {
       email,
       password,
+      redirect: false,
     });
 
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Login successful!");
-      router.push("/notes");
+    setIsLoading(false);
+
+    if (result?.error) {
+      toast.error("Invalid email or password");
+      return;
     }
+
+    toast.success("Login successful!");
+    router.push("/notes");
   };
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    setError(null);
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        setError(error.message);
-        toast.error(error.message);
-      }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
-      setError("An unexpected error occurred");
-      toast.error("An unexpected error occurred");
-    } finally {
-      setIsLoading(false);
-    }
+    await signIn("google", { callbackUrl: "/notes" });
   };
 
   return (
@@ -139,8 +121,8 @@ export default function LoginPage() {
                 />
               </div>
 
-              <Button className="mt-2" type="submit">
-                Login
+              <Button className="mt-2" type="submit" disabled={isLoading}>
+                {isLoading ? "Logging in..." : "Login"}
               </Button>
             </form>
           </CardContent>

@@ -1,26 +1,39 @@
 import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import { ChatGroq } from "@langchain/groq";
+import { HumanMessage } from "@langchain/core/messages";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_GENAI_API_KEY, // API Key ko safely store karne ke liye environment variable ka use karo
+const llm = new ChatGroq({
+  apiKey: process.env.GROQ_API_KEY,
+  model: process.env.GROQ_MODEL ?? "llama3-8b-8192",
+  temperature: 0.2,
 });
 
 export async function POST(req: Request) {
   try {
-    const { content } = await req.json(); // Request se content ko fetch karo
+    const { content } = await req.json();
 
-    // Gemini model ko call karte hue content summarize karo
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: `Summarize this:\n\n${content}`,
-    });
+    if (typeof content !== "string" || !content.trim()) {
+      return NextResponse.json(
+        { error: "Missing or empty content" },
+        { status: 400 },
+      );
+    }
 
-    return NextResponse.json({ summary: response.text }); // Response ko return karo
+    const prompt = `Summarize this note in 5-8 concise bullet points:\n\n${content}`;
+
+    const result = await llm.invoke([new HumanMessage({ content: prompt })]);
+
+    const summary =
+      typeof (result as { content?: unknown })?.content === "string"
+        ? ((result as { content: string }).content as string)
+        : String(result);
+
+    return NextResponse.json({ summary });
   } catch (error) {
     console.error("Error generating summary:", error);
     return NextResponse.json(
       { error: "Failed to generate summary" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

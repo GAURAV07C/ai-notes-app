@@ -1,15 +1,11 @@
 "use server";
 
 import { encodedRedirect } from "@/utils/utils";
-import { createClient } from "@/utils/supabase/server";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { createUserWithPassword } from "@/lib/auth-options";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
-  const supabase = await createClient();
-  const origin = (await headers()).get("origin");
 
   if (!email || !password) {
     return encodedRedirect(
@@ -19,47 +15,19 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-    },
-  });
-
-  if (error) {
-    console.error(error.code + " " + error.message);
-    return encodedRedirect("error", "/signup", error.message);
-  } else {
+  try {
+    await createUserWithPassword(email, password);
+  } catch (error) {
     return encodedRedirect(
-      "success",
+      "error",
       "/signup",
-      "Thanks for signing up! Please check your email for a verification link.",
+      error instanceof Error ? error.message : "Failed to create account",
     );
   }
-};
 
-export const signInAction = async (formData: FormData) => {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const supabase = await createClient();
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    return encodedRedirect("error", "/login", error.message);
-  }
-
-  return redirect("/notes");
-};
-
-
-
-export const signOutAction = async () => {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  return redirect("/login");
+  return encodedRedirect(
+    "success",
+    "/login",
+    "Account created. You can now log in.",
+  );
 };

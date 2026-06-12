@@ -1,82 +1,78 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
-import { useCreateNote, useGenerateSummary } from "@/lib/api"
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react"
-import { toast } from "sonner"
+import { useCreateNote, useGenerateSummary } from "@/lib/api";
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 export default function NewNotePage() {
-  const router = useRouter()
+  const router = useRouter();
 
-  const createNote = useCreateNote()
-  const generateSummary = useGenerateSummary()
+  const createNote = useCreateNote();
+  const generateSummary = useGenerateSummary();
 
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
-  const [summary, setSummary] = useState("")
-  const [isSummarizing, setIsSummarizing] = useState(false)
-
-  
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [summary, setSummary] = useState("");
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   const handleSummarize = async () => {
     if (!content.trim()) {
-      toast("")
-      return
+      toast("Please enter some content.");
+      return;
     }
 
-    setIsSummarizing(true)
+    setIsSummarizing(true);
 
     generateSummary.mutate(content, {
       onSuccess: (generatedSummary) => {
-        setSummary(generatedSummary)
-        toast("Summary generated successfully")
+        setSummary(generatedSummary);
+        toast("Summary generated successfully");
       },
       onError: () => {
-        toast("Failed to generate summary")
+        toast("Failed to generate summary");
       },
       onSettled: () => {
-        setIsSummarizing(false)
+        setIsSummarizing(false);
       },
-    })
-  }
+    });
+  };
 
-const handleSave = () => {
-  if (!title.trim()) {
-    toast("Please enter a title.");
-    return;
-  }
-
-  if (!content.trim()) {
-    toast("Please enter some content.");
-    return;
-  }
-
-  createNote.mutate(
-    {
-      title,
-      content,
-      summary: summary || "",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      onSuccess: () => {
-        toast("Note created successfully!");
-        router.push("/notes"); // Redirect to the notes page
-      },
-      onError: (error) => {
-        console.error("Error creating note:", error); // Log the error
-        toast("Failed to create note. Please try again.");
-      },
+  const handleSave = () => {
+    if (!title.trim()) {
+      toast("Please enter a title.");
+      return;
     }
-  );
-};
+
+    if (!content.trim()) {
+      toast("Please enter some content.");
+      return;
+    }
+
+    createNote.mutate(
+          {
+            title,
+            content,
+            summary: summary || "",
+          },
+      {
+        onSuccess: () => {
+          toast("Note created successfully!");
+          router.push("/notes"); // Redirect to the notes page
+        },
+        onError: (error) => {
+          console.error("Error creating note:", error); // Log the error
+          toast("Failed to create note. Please try again.");
+        },
+      },
+    );
+  };
   return (
     <div className="flex-1 overflow-auto py-10">
       <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-950 border-b">
@@ -104,7 +100,11 @@ const handleSave = () => {
               </>
             )}
           </Button>
-          <Button size="sm" onClick={handleSave} disabled={createNote.isPending || !title.trim() || !content.trim()}>
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={createNote.isPending || !title.trim() || !content.trim()}
+          >
             {createNote.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -129,7 +129,9 @@ const handleSave = () => {
         {summary && (
           <Card className="mb-6">
             <CardContent className="p-4">
-              <h3 className="text-sm font-medium text-gray-500 mb-2">AI SUMMARY</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                AI SUMMARY
+              </h3>
               <p className="text-sm">{summary}</p>
             </CardContent>
           </Card>
@@ -143,5 +145,5 @@ const handleSave = () => {
         />
       </div>
     </div>
-  )
+  );
 }

@@ -1,36 +1,16 @@
 "use client";
-import React, { useState } from "react";
+
+import { useState } from "react";
 import { Button } from "../ui/button";
-import { createClient } from "@/utils/supabase/client";
 import { Icons } from "../icons";
+import { signIn } from "next-auth/react";
 
 const LoginWithGoogle = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const supabase = createClient();
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    setError(null);
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        setError(error.message);
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
-      setError("An unexpected error occurred");
-    } finally {
-      setIsLoading(false);
-    }
+    await signIn("google", { callbackUrl: "/notes" });
   };
 
   return (

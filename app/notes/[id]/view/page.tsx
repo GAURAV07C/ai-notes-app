@@ -47,7 +47,7 @@ export default function ViewNotePage() {
       year: "numeric",
     }).format(date);
   };
-console.log(note);
+
   return (
     <div className="flex-1 overflow-auto max-w-4xl mx-auto py-10">
       <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-950 border-b">
@@ -81,15 +81,15 @@ console.log(note);
         )}
 
         <div className="prose dark:prose-invert max-w-none">
-            {note.content.split("\n").map((paragraph: string, i: number) =>
+          {note.content.split("\n").map((paragraph: string, i: number) =>
             paragraph.trim() ? (
               <p key={i} className="mb-4">
-              {paragraph}
+                {paragraph}
               </p>
             ) : (
               <br key={i} />
-            )
-            )}
+            ),
+          )}
         </div>
       </div>
     </div>

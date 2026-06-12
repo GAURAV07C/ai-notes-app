@@ -1,168 +1,103 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/utils/supabase/client";
-
-const supabase = createClient();
-
+import { useSession } from "next-auth/react";
 import { type Note } from "./data";
-// import { generateSummary } from "./gen_ai";
 
-// Simulate API delay
+const NOTE_API = "/api/notes";
+
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const message = await response.text();
+
+    throw new Error(message || "Request failed");
+  }
+
+  return response.json();
+}
 
 export const getNotes = async () => {
-  // Get the authenticated user
-  const { data: user, error: authError } = await supabase.auth.getUser();
+  const response = await fetch(NOTE_API, { cache: "no-store" });
 
-  if (authError || !user) {
-    throw new Error("User not authenticated");
-  }
-
-  // Fetch notes for the authenticated user
-  const { data, error } = await supabase
-    .from("notes")
-    .select("*")
-    .eq("user_id", user.user.id) // Use user ID from authentication
-    .order("created_at", { ascending: false }); // Use created_at instead of createdAt
-
-  if (error) {
-    console.error("Error fetching notes:", error.message);
-    throw error;
-  }
-
-  return data;
+  return handleResponse<Note[]>(response);
 };
 
-// Get all notes for the authenticated user
 export function useNotes() {
+  const { data: session } = useSession();
+
   return useQuery({
     queryKey: ["notes"],
-    queryFn: getNotes, 
+    queryFn: getNotes,
+    enabled: !!session?.user,
   });
 }
 
-// Get a single note by ID
 export function useNote(id: string) {
+  const { data: session } = useSession();
+
   return useQuery({
     queryKey: ["notes", id],
     queryFn: async () => {
-      // Get the authenticated user
-      const { data: user, error: authError } = await supabase.auth.getUser();
+      const response = await fetch(`${NOTE_API}/${encodeURIComponent(id)}`, {
+        cache: "no-store",
+      });
+      const note = await handleResponse<Note>(response);
+      const validCreatedAt = new Date(note.createdAt);
+      const validUpdatedAt = new Date(note.updatedAt);
 
-      if (authError || !user) {
-        throw new Error("User not authenticated");
-      }
-
-      const userId = user?.user.id; // Extract user ID from the user object
-
-      if (!userId) {
-        throw new Error("User ID is missing");
-      }
-
-      // Fetch the note for the authenticated user
-      const { data, error } = await supabase
-        .from("notes")
-        .select("*")
-        .eq("id", id)
-        .eq("user_id", userId)
-        .single(); // Fetch a single note
-
-      if (error || !data) {
-        throw new Error(`Note with ID ${id} not found`);
-      }
-
-      // Ensure that date fields are valid
-      const validCreatedAt = new Date(data.created_at);
-      const validUpdatedAt = new Date(data.updated_at);
-
-      if (isNaN(validCreatedAt.getTime()) || isNaN(validUpdatedAt.getTime())) {
+      if (
+        isNaN(validCreatedAt.getTime()) ||
+        isNaN(validUpdatedAt.getTime())
+      ) {
         throw new Error("Invalid date format");
       }
 
-      // Add validated dates to the note data
-      data.created_at = validCreatedAt;
-      data.updated_at = validUpdatedAt;
-
-      return data; // Return the fetched note data
+      return note;
     },
-    retry: 2, // Retry 2 times before failing
+    enabled: !!session?.user && !!id,
+    retry: 2,
   });
 }
-// Create a new note
 
 export function useCreateNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (
-      newNote: Omit<Note, "user_id" | "id" | "created_at" | "updated_at">
+      newNote: Omit<Note, "userId" | "id" | "createdAt" | "updatedAt">,
     ) => {
-      // Get the authenticated user
-      const { data, error } = await supabase.auth.getUser();
+      const response = await fetch(NOTE_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newNote),
+      });
 
-      if (error || !data?.user) {
-        throw new Error("User not authenticated");
-      }
-
-      // Ensure that user is valid
-      const userId = data.user.id;
-      if (!userId) {
-        throw new Error("User ID not found");
-      }
-
-      // Insert the new note with the user ID
-      const { data: insertData, error: insertError } = await supabase
-        .from("notes")
-        .insert([
-          {
-            title: newNote.title,
-            content: newNote.content,
-            summary: newNote.summary,
-            user_id: userId, // Ensure user ID is valid
-            created_at: newNote.createdAt,
-            updated_at: newNote.updatedAt,
-          },
-        ])
-        .select()
-        .single(); // Insert and get the response for a single note
-
-      if (insertError) {
-        throw new Error(insertError.message); // Handle any errors from Supabase
-      }
-
-      return insertData; // Return the created note
+      return handleResponse<Note>(response);
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["notes"], (oldData: Note[] = []) => {
-        return [data, ...oldData]; // Update the cache with the new note
+        return [data, ...oldData];
       });
     },
   });
 }
 
-// Update an existing note
 export function useUpdateNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (updatedNote: Partial<Note> & { id: string }) => {
-      const { error, data } = await supabase
-        .from("notes")
-        .update({
+      const response = await fetch(`${NOTE_API}/${encodeURIComponent(updatedNote.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           title: updatedNote.title,
           content: updatedNote.content,
           summary: updatedNote.summary,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", updatedNote.id)
-        .select()
-        .single();
+        }),
+      });
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      return data;
+      return handleResponse<Note>(response);
     },
 
     onSuccess: (data) => {
@@ -171,26 +106,17 @@ export function useUpdateNote() {
     },
   });
 }
-// Delete a note
+
 export function useDeleteNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { data: user, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        throw new Error("User not authenticated");
-      }
+      const response = await fetch(`${NOTE_API}/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
 
-      const { error } = await supabase
-        .from("notes")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", user.user.id);
-
-      if (error) {
-        throw new Error(error.message);
-      }
+      await handleResponse<{ id: string }>(response);
 
       return id;
     },
@@ -208,31 +134,27 @@ export async function generateSummary(content: string) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content }),
-    }
+    },
   );
 
   const data = await res.json();
   if (data.error) {
-    throw new Error(data.error); // Error handle karo
+    throw new Error(data.error);
   }
 
-  return data.summary; // Summary ko return karo
+  return data.summary;
 }
 
-// Ye function Gemini API ko call karega
-// Generate AI summary (real implementation)
 export function useGenerateSummary() {
   return useMutation({
     mutationFn: async (content: string) => {
       const words = content.split(" ");
 
-      // Agar content me 10 words ya usse kam hain to wahi return
       if (words.length <= 10) {
         return content;
       } else {
-        const summary = await generateSummary(content); // await yahan
+        const summary = await generateSummary(content);
 
-        // Safety: agar response empty aaye to fallback logic
         if (!summary || summary.trim().length === 0) {
           const sentences = content
             .split(/[.!?]+/)

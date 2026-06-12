@@ -63,7 +63,7 @@ export function NoteCard({ note, onDelete, onEdit }: NoteCardProps) {
     >
       <CardHeader className="pb-2 border-b">
         <CardTitle className="line-clamp-1 text-lg">{note.title}</CardTitle>
-        <CardDescription>{formatDate(note.updated_at)}</CardDescription>
+        <CardDescription>{formatDate(note.updatedAt)}</CardDescription>
       </CardHeader>
 
       <CardContent className="flex-grow py-4">
